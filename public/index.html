@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Diwali Greeting Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Global styles */
+    body {
+      font-family: 'Roboto', system-ui, sans-serif;
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 700px;
+      width: 90%;
+      background: #fff8f0;
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1 {
+      color: #ff6f00;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 1px 1px 3px #ffcc80;
+    }
+
+    p {
+      color: #6b4226;
+      margin-bottom: 20px;
+      font-size: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 2px solid #ffb74d;
+      resize: none;
+      font-size: 1rem;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #ff9800;
+      box-shadow: 0 0 10px #ffcc80;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(45deg, #ff9800, #ffb74d);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 152, 0, 0.5);
+    }
+
+    h3 {
+      margin-top: 30px;
+      color: #d84315;
+      font-size: 1.5rem;
+    }
+
+    pre {
+      background: #fff3e0;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 10px;
+      min-height: 60px;
+      color: #4e342e;
+      font-size: 1rem;
+      white-space: pre-wrap;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Floating diyas animation */
+    .diya {
+      position: absolute;
+      width: 20px;
+      height: 30px;
+      background: radial-gradient(circle at 50% 50%, #ffcc00, #ff6f00);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      animation: float 5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(10deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🪔 Diwali Greeting Generator 🪔</h1>
+    <p>Enter a name/context (e.g. "my friend Jay and his family")</p>
+    <textarea id="prompt">my friend Jay and his family</textarea>
+    <br>
+    <button id="generate">Generate Greeting</button>
+    <h3>Output</h3>
+    <pre id="output">—</pre>
+  </div>
+
+  <script>
+    // Floating diyas effect
+    const container = document.querySelector('.container');
+    for(let i=0; i<10; i++){
+      const diya = document.createElement('div');
+      diya.className = 'diya';
+      diya.style.left = Math.random() * 100 + '%';
+      diya.style.top = Math.random() * 100 + '%';
+      diya.style.animationDuration = (3 + Math.random()*4) + 's';
+      container.appendChild(diya);
+    }
+
+    // Generate greeting logic
+    document.getElementById('generate').addEventListener('click', async () => {
+      const prompt = document.getElementById('prompt').value.trim();
+      if (!prompt) return alert('Type something first');
+
+      const out = document.getElementById('output');
+      out.style.opacity = 0;
+      out.textContent = 'Generating...';
+
+      setTimeout(() => out.style.opacity = 1, 50);
+
+      try {
+        const r = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ prompt })
+        });
+
+        const j = await r.json();
+
+        if (!r.ok) {
+          out.textContent = `Server error (${r.status}): ${j.error || JSON.stringify(j)}`;
+          if (j.raw) out.textContent += `\n\nRaw: ${JSON.stringify(j.raw).slice(0,2000)}`;
+          return;
+        }
+
+        if (j.output) {
+          let lines = j.output.split('\n');
+          if (lines[0].startsWith("Here's a warm Diwali greeting")) {
+            lines.shift();
+          }
+          out.textContent = lines.join('\n').trim();
+          out.style.opacity = 1;
+        } else {
+          out.textContent = 'No output from server. Response: ' + JSON.stringify(j);
+        }
+      } catch (e) {
+        out.textContent = 'Network or client error: ' + e.message;
+      }
+    });
+  </script>
+</body>
+</html>

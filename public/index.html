@@ -148,7 +148,7 @@
       setTimeout(() => out.style.opacity = 1, 50);
 
       try {
-        const r = await fetch('/api/generate', {
+        const r = await fetch('https://diwali-greeting-ai.onrender.com/api/generate', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ prompt })
